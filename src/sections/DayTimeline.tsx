@@ -29,7 +29,8 @@ export default function DayTimeline() {
       start: "top top",
       end: () => `+=${(stops.length - 1) * 100}%`,
       pin: innerRef.current,
-      scrub: true,
+      anticipatePin: 1,
+      scrub: 0.6,
       onUpdate: (self) => {
         const f = self.progress * (stops.length - 1);
         const i = Math.min(stops.length - 2, Math.floor(f));
@@ -74,7 +75,7 @@ export default function DayTimeline() {
         <h2 id="day-title" className="sr-only">
           A day at Aurelia
         </h2>
-        <p className="label text-bronzedeep">07 — A DAY AT AURELIA</p>
+        <p className="label text-bronzedeep">06 — A DAY AT AURELIA</p>
         <div className="mt-14 grid gap-16">
           {DAY_STOPS.map((s) => (
             <div key={s.time} className="grid gap-6 md:grid-cols-2 md:items-center">
@@ -133,7 +134,7 @@ export default function DayTimeline() {
             style={{ color: DAY_STOPS[0].fg }}
           >
             <div className="absolute top-[17vh] left-6 md:top-[19vh] md:left-14">
-              <p className="label opacity-75">07 — A DAY AT AURELIA</p>
+              <p className="label opacity-75">06 — A DAY AT AURELIA</p>
               <div key={idx} className="animate-fade-up">
                 <p className="mt-6 font-display text-[17vw] leading-[0.9] font-medium tabular-nums md:text-[8vw]">
                   {DAY_STOPS[idx].time}

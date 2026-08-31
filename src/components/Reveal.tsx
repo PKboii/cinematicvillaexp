@@ -44,12 +44,10 @@ export function Reveal({
 export function MaskLines({
   lines,
   className = "",
-  lineClassName = "",
   stagger = 0.13,
 }: {
   lines: ReactNode[];
   className?: string;
-  lineClassName?: string;
   stagger?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -74,7 +72,7 @@ export function MaskLines({
   return (
     <div ref={ref} className={className}>
       {lines.map((line, i) => (
-        <span key={i} className={`block overflow-hidden ${lineClassName}`}>
+        <span key={i} className="block overflow-hidden">
           <span data-mask-line="" className="block will-change-transform">
             {line}
           </span>
@@ -84,7 +82,9 @@ export function MaskLines({
   );
 }
 
-/* Wipe-in image with optional scroll parallax */
+/* Wipe-in image with optional scroll parallax.
+   Three separate transform targets — figure (clip), img (scale-once),
+   wrapper (scrubbed drift) — so tweens can never overwrite each other. */
 export function ImageReveal({
   src,
   alt,
@@ -101,11 +101,13 @@ export function ImageReveal({
   eager?: boolean;
 }) {
   const figRef = useRef<HTMLElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   useEffect(() => {
     const fig = figRef.current;
+    const wrap = wrapRef.current;
     const img = imgRef.current;
-    if (!fig || !img || prefersReducedMotion()) return;
+    if (!fig || !wrap || !img || prefersReducedMotion()) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         fig,
@@ -119,9 +121,9 @@ export function ImageReveal({
       );
       gsap.fromTo(
         img,
-        { scale: 1.22 },
+        { scale: 1.18 },
         {
-          scale: 1.02,
+          scale: 1,
           duration: 1.8,
           ease: EASE.out,
           scrollTrigger: { trigger: fig, start: "top 86%", once: true },
@@ -129,12 +131,17 @@ export function ImageReveal({
       );
       if (parallax) {
         gsap.fromTo(
-          img,
-          { yPercent: -7 },
+          wrap,
+          { yPercent: -6 },
           {
-            yPercent: 7,
+            yPercent: 6,
             ease: "none",
-            scrollTrigger: { trigger: fig, start: "top bottom", end: "bottom top", scrub: true },
+            scrollTrigger: {
+              trigger: fig,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 0.6,
+            },
           }
         );
       }
@@ -143,14 +150,16 @@ export function ImageReveal({
   }, [parallax]);
   return (
     <figure ref={figRef} className={`overflow-hidden ${className}`}>
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        loading={eager ? "eager" : "lazy"}
-        decoding="async"
-        className={`h-full w-full object-cover will-change-transform ${imgClassName}`}
-      />
+      <div ref={wrapRef} className="h-[112%] w-full -translate-y-[6%] will-change-transform">
+        <img
+          ref={imgRef}
+          src={src}
+          alt={alt}
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+          className={`h-full w-full object-cover ${imgClassName}`}
+        />
+      </div>
     </figure>
   );
 }

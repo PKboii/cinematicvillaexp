@@ -4,11 +4,24 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger);
-/* competing tweens on the same target (e.g. rapid hotspot camera moves)
-   hand over cleanly instead of fighting each other */
+/* competing tweens on the same target hand over cleanly instead of fighting */
 gsap.defaults({ overwrite: "auto" });
+/* mobile address-bar resize churn must not re-trigger pin measurements */
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 export { gsap, ScrollTrigger };
+
+/* ---------------- one debounced refresh pipeline ---------------- */
+/* Late-loading imagery changes layout; every consumer funnels through here
+   so ScrollTrigger re-measures once, calmly, instead of mid-scroll storms. */
+let refreshTimer: number | undefined;
+export function scheduleRefresh(fast = false): void {
+  window.clearTimeout(refreshTimer);
+  refreshTimer = window.setTimeout(
+    () => ScrollTrigger.refresh(),
+    fast ? 80 : 220
+  );
+}
 
 export const EASE = {
   out: "power3.out",

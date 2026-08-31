@@ -1,6 +1,6 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Lenis from "lenis";
-import { gsap, ScrollTrigger, prefersReducedMotion, scrollApi } from "./lib/core";
+import { gsap, ScrollTrigger, prefersReducedMotion, scheduleRefresh, scrollApi } from "./lib/core";
 import LoadingScreen from "./components/LoadingScreen";
 import Cursor from "./components/Cursor";
 import Navigation from "./components/Navigation";
@@ -12,8 +12,6 @@ import Pool from "./sections/Pool";
 import DayTimeline from "./sections/DayTimeline";
 import Location from "./sections/Location";
 import Reserve from "./sections/Reserve";
-
-const Explorer = lazy(() => import("./sections/Explorer"));
 
 export default function App() {
   const [entered, setEntered] = useState(false);
@@ -39,18 +37,27 @@ export default function App() {
     };
   }, []);
 
-  /* refresh measurements once fonts + imagery settle */
+  /* Every layout-affecting event funnels into ONE debounced refresh,
+     so pinned sections never desync from late-loading imagery. */
   useEffect(() => {
-    const refresh = () => ScrollTrigger.refresh();
-    window.addEventListener("load", refresh);
-    document.fonts?.ready.then(refresh).catch(() => undefined);
-    return () => window.removeEventListener("load", refresh);
+    const onLoad = () => scheduleRefresh(true);
+    const onAnyImg = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      if (t && t.tagName === "IMG") scheduleRefresh();
+    };
+    window.addEventListener("load", onLoad);
+    document.addEventListener("load", onAnyImg, true);
+    document.fonts?.ready.then(() => scheduleRefresh(true)).catch(() => undefined);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      document.removeEventListener("load", onAnyImg, true);
+    };
   }, []);
 
   const handleEnter = () => {
     setEntered(true);
     scrollApi.lenis?.start();
-    window.setTimeout(() => ScrollTrigger.refresh(), 450);
+    scheduleRefresh(true);
   };
 
   return (
@@ -63,9 +70,6 @@ export default function App() {
         <Hero entered={entered} />
         <House />
         <Architecture />
-        <Suspense fallback={null}>
-          <Explorer />
-        </Suspense>
         <Rooms />
         <Pool />
         <DayTimeline />

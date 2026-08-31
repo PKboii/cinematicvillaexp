@@ -32,7 +32,7 @@ export default function Reserve() {
           Reservation — your time at Aurelia
         </h2>
         <Reveal>
-          <p className="label text-bronze">09 — RESERVATION</p>
+          <p className="label text-bronze">08 — RESERVATION</p>
         </Reveal>
         <MaskLines
           className="mt-8 font-display text-[15vw] leading-[0.92] font-medium tracking-tight md:text-[7.5vw]"

@@ -13,23 +13,38 @@ const STATS: [string, string][] = [
 export default function Pool() {
   const reduced = useReducedMotion();
   const figRef = useRef<HTMLElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  /* scale on the img, drift on the wrapper — separate targets, no fighting */
   useEffect(() => {
-    if (reduced || !figRef.current || !imgRef.current) return;
+    if (reduced || !figRef.current || !wrapRef.current || !imgRef.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         imgRef.current,
-        { scale: 1.18, yPercent: -5 },
+        { scale: 1.16 },
         {
           scale: 1.02,
-          yPercent: 5,
           ease: "none",
           scrollTrigger: {
             trigger: figRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: true,
+            scrub: 0.6,
+          },
+        }
+      );
+      gsap.fromTo(
+        wrapRef.current,
+        { yPercent: -4 },
+        {
+          yPercent: 4,
+          ease: "none",
+          scrollTrigger: {
+            trigger: figRef.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 0.6,
           },
         }
       );
@@ -44,7 +59,7 @@ export default function Pool() {
       </h2>
       <div className="px-6 pt-28 pb-14 md:px-14 md:pt-36 md:pb-20">
         <Reveal>
-          <p className="label text-bronze">06 — THE POOL</p>
+          <p className="label text-bronze">05 — THE POOL</p>
         </Reveal>
         <MaskLines
           className="mt-8 font-display text-[12vw] leading-[0.95] font-medium tracking-tight md:text-[5.6vw]"
@@ -58,14 +73,16 @@ export default function Pool() {
       </div>
 
       <figure ref={figRef} className="relative h-[100vh] overflow-hidden" data-cursor="VIEW">
-        <img
-          ref={imgRef}
-          src={IMG.water}
-          alt="Sunlight caustics dancing across the pale floor of the infinity pool"
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover will-change-transform"
-        />
+        <div ref={wrapRef} className="h-[110%] w-full -translate-y-[4.5%] will-change-transform">
+          <img
+            ref={imgRef}
+            src={IMG.water}
+            alt="Sunlight caustics dancing across the pale floor of the infinity pool"
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </div>
         <figcaption className="pointer-events-none absolute bottom-4 left-4 md:bottom-8 md:left-10">
           <span className="text-outline font-display text-[26vw] leading-[0.85] font-medium select-none md:text-[12rem]">
             24M

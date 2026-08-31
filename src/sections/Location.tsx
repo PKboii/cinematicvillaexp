@@ -44,7 +44,7 @@ export default function Location() {
       <div className="grid gap-16 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-5">
           <Reveal>
-            <p className="label text-bronzedeep">08 — LOCATION</p>
+            <p className="label text-bronzedeep">07 — LOCATION</p>
           </Reveal>
           <MaskLines
             className="mt-7 font-display text-[16vw] leading-[0.9] font-medium tracking-tight md:text-[7vw]"

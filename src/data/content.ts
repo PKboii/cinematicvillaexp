@@ -30,9 +30,9 @@ export const HERO_FRAMES: string[] = [
 ];
 
 export const NAV_LINKS = [
-  { label: "EXPLORE", target: "#model" },
   { label: "THE HOUSE", target: "#house" },
   { label: "ROOMS", target: "#rooms" },
+  { label: "THE POOL", target: "#pool" },
   { label: "EXPERIENCE", target: "#day" },
   { label: "LOCATION", target: "#location" },
 ] as const;
@@ -41,12 +41,11 @@ export const CHAPTERS = [
   { id: "arrival", num: "01", name: "ARRIVAL" },
   { id: "house", num: "02", name: "THE HOUSE" },
   { id: "architecture", num: "03", name: "ARCHITECTURE" },
-  { id: "model", num: "04", name: "THE MODEL" },
-  { id: "rooms", num: "05", name: "THE ROOMS" },
-  { id: "pool", num: "06", name: "THE POOL" },
-  { id: "day", num: "07", name: "THE DAY" },
-  { id: "location", num: "08", name: "LOCATION" },
-  { id: "reserve", num: "09", name: "RESERVATION" },
+  { id: "rooms", num: "04", name: "THE ROOMS" },
+  { id: "pool", num: "05", name: "THE POOL" },
+  { id: "day", num: "06", name: "THE DAY" },
+  { id: "location", num: "07", name: "LOCATION" },
+  { id: "reserve", num: "08", name: "RESERVATION" },
 ] as const;
 
 export type Room = {
@@ -104,77 +103,6 @@ export const ROOMS: Room[] = [
     line: "The table moves outside at six.",
     image: IMG.dining,
     alt: "Outdoor dining terrace at dusk with long teak table, candles and lanterns",
-  },
-];
-
-export type HotspotId = "master" | "pool" | "living" | "dining" | "garden";
-
-export type Hotspot = {
-  id: HotspotId;
-  num: string;
-  name: string;
-  copy: string;
-  image: string;
-  marker: [number, number, number];
-  camPos: [number, number, number];
-  camTarget: [number, number, number];
-};
-
-export const OVERVIEW_CAM = {
-  pos: [17, 11.5, 19] as [number, number, number],
-  target: [0, 0.8, 1] as [number, number, number],
-};
-
-export const HOTSPOTS: Hotspot[] = [
-  {
-    id: "master",
-    num: "01",
-    name: "MASTER SUITE",
-    copy: "The master wing floats above the living pavilion — teak, linen and the first light over water.",
-    image: IMG.master,
-    marker: [-4.2, 5.7, -1.5],
-    camPos: [-11, 7.5, 7.5],
-    camTarget: [-4.2, 3.6, -1.5],
-  },
-  {
-    id: "pool",
-    num: "02",
-    name: "INFINITY POOL",
-    copy: "Twenty-four metres, salt-filtered, aligned so precisely to the horizon that the edge disappears.",
-    image: IMG.water,
-    marker: [-1, 1.15, 8],
-    camPos: [-1.5, 5.5, 16.5],
-    camTarget: [-1, 0.3, 8],
-  },
-  {
-    id: "living",
-    num: "03",
-    name: "LIVING PAVILION",
-    copy: "A room with no doors. Glass on three sides — on the fourth, the pool.",
-    image: IMG.living,
-    marker: [-2.4, 3.9, 1.4],
-    camPos: [-2.5, 3.4, 9],
-    camTarget: [-2.8, 1.4, -1.5],
-  },
-  {
-    id: "dining",
-    num: "04",
-    name: "DINING TERRACE",
-    copy: "Dinner moves outside at dusk — a long teak table under the palms.",
-    image: IMG.dining,
-    marker: [3.4, 3.3, -1.5],
-    camPos: [10, 4.5, 7.5],
-    camTarget: [3.4, 1, -1.5],
-  },
-  {
-    id: "garden",
-    num: "05",
-    name: "GARDEN",
-    copy: "Two thousand square metres of jungle, kept wild on purpose.",
-    image: IMG.garden,
-    marker: [10, 2.3, 5],
-    camPos: [16, 6, 12.5],
-    camTarget: [9.5, 0.6, 4.5],
   },
 ];
 
@@ -255,8 +183,6 @@ export type PlanRoom = {
   y: number;
   w: number;
   h: number;
-  labelX?: number;
-  labelY?: number;
 };
 
 export const PLAN_ROOMS: PlanRoom[] = [

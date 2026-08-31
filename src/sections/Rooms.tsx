@@ -56,7 +56,7 @@ export default function Rooms() {
       </h2>
       <div className="px-6 pt-28 md:px-14 md:pt-36">
         <Reveal>
-          <p className="label text-bronzedeep">05 — THE ROOMS</p>
+          <p className="label text-bronzedeep">04 — THE ROOMS</p>
         </Reveal>
         <MaskLines
           className="mt-7 font-display text-[13vw] leading-[0.95] font-medium tracking-tight md:text-[6vw]"

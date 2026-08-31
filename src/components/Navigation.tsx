@@ -155,7 +155,7 @@ export default function Navigation({ entered }: { entered: boolean }) {
       >
         <span className="font-display text-xl font-light italic text-ivory">{chapter.num}</span>
         <span className="label text-ivory/70">{chapter.name}</span>
-        <span className="label text-ivory/40">/ 09</span>
+        <span className="label text-ivory/40">/ 08</span>
       </div>
       <div
         className={`fixed bottom-6 right-5 z-[65] hidden h-24 w-px mix-blend-difference md:right-10 md:block ${

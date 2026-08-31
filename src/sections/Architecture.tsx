@@ -189,10 +189,10 @@ export default function Architecture() {
             />
             <button
               type="button"
-              onClick={() => scrollToTarget("#model")}
+              onClick={() => scrollToTarget("#rooms")}
               className="label-lg link-line mt-7 inline-block text-bronze"
             >
-              VIEW IN THE MODEL →
+              SEE IT IN THE ROOMS →
             </button>
           </div>
           <Reveal className="mt-8">

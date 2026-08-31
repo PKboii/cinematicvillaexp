@@ -64,10 +64,10 @@ export default function Hero({ entered }: { entered: boolean }) {
     const st = ScrollTrigger.create({
       trigger: wrapRef.current,
       start: "top top",
-      end: "+=340%",
+      end: "+=260%",
       pin: true,
       anticipatePin: 1,
-      scrub: 0.6,
+      scrub: 0.55,
       onUpdate: (self) => {
         seqRef.current?.draw(self.progress);
         master.current?.progress(self.progress);
