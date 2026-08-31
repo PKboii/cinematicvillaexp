@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { gsap, ScrollTrigger, scrollToTarget, scrollApi, EASE } from "../lib/core";
+import { gsap, prefersReducedMotion, scrollApi, scrollToTarget, EASE } from "../lib/core";
 import { ambient } from "../lib/audio";
 import { CHAPTERS, COORDS, NAV_LINKS } from "../data/content";
 
@@ -11,38 +11,49 @@ export default function Navigation({ entered }: { entered: boolean }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<HTMLDivElement>(null);
 
-  /* chapter tracker + scroll progress */
+  /* chapter tracker + scroll progress — observer & rAF based */
   useEffect(() => {
     if (!entered) return;
-    const ctx = gsap.context(() => {
-      CHAPTERS.forEach((c) => {
-        ScrollTrigger.create({
-          trigger: `#${c.id}`,
-          start: "top 55%",
-          end: "bottom 55%",
-          onToggle: (self) => {
-            if (self.isActive) setChapter({ num: c.num, name: c.name });
-          },
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const c = CHAPTERS.find((ch) => ch.id === e.target.id);
+          if (c) setChapter({ num: c.num, name: c.name });
         });
-      });
-      if (progressRef.current) {
-        gsap.fromTo(
-          progressRef.current,
-          { scaleY: 0 },
-          {
-            scaleY: 1,
-            ease: "none",
-            scrollTrigger: { start: 0, end: "max", scrub: 0.4 },
-          }
-        );
-      }
+      },
+      { rootMargin: "-42% 0px -52% 0px", threshold: 0 }
+    );
+    CHAPTERS.forEach((c) => {
+      const el = document.getElementById(c.id);
+      if (el) io.observe(el);
     });
-    return () => ctx.revert();
+
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      if (!progressRef.current) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      progressRef.current.style.transform = `scaleY(${p.toFixed(4)})`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [entered]);
 
   /* full-screen menu choreography */
   useEffect(() => {
-    if (prefersReduced()) {
+    if (prefersReducedMotion()) {
       if (open) scrollApi.lenis?.stop();
       else scrollApi.lenis?.start();
       return;
@@ -230,12 +241,5 @@ export default function Navigation({ entered }: { entered: boolean }) {
         </div>
       )}
     </>
-  );
-}
-
-function prefersReduced() {
-  return (
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
 }

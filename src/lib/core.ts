@@ -1,27 +1,8 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type Lenis from "lenis";
 
-gsap.registerPlugin(ScrollTrigger);
-/* competing tweens on the same target hand over cleanly instead of fighting */
-gsap.defaults({ overwrite: "auto" });
-/* mobile address-bar resize churn must not re-trigger pin measurements */
-ScrollTrigger.config({ ignoreMobileResize: true });
-
-export { gsap, ScrollTrigger };
-
-/* ---------------- one debounced refresh pipeline ---------------- */
-/* Late-loading imagery changes layout; every consumer funnels through here
-   so ScrollTrigger re-measures once, calmly, instead of mid-scroll storms. */
-let refreshTimer: number | undefined;
-export function scheduleRefresh(fast = false): void {
-  window.clearTimeout(refreshTimer);
-  refreshTimer = window.setTimeout(
-    () => ScrollTrigger.refresh(),
-    fast ? 80 : 220
-  );
-}
+export { gsap };
 
 export const EASE = {
   out: "power3.out",
@@ -116,10 +97,10 @@ export function preloadImages(
 
 /* ---------------- hooks ---------------- */
 
-export function useInView<T extends HTMLElement>(
-  rootMargin = "500px"
+export function useInView<T extends Element>(
+  rootMargin = "0px 0px -8% 0px"
 ): [RefObject<T>, boolean] {
-  const ref = useRef<T | null>(null);
+  const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -140,7 +121,7 @@ export function useInView<T extends HTMLElement>(
 }
 
 export function useMagnetic<T extends HTMLElement>(strength = 0.3): RefObject<T> {
-  const ref = useRef<T | null>(null);
+  const ref = useRef<T>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el || isTouchDevice() || prefersReducedMotion()) return;

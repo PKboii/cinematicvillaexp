@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Lenis from "lenis";
-import { gsap, ScrollTrigger, prefersReducedMotion, scheduleRefresh, scrollApi } from "./lib/core";
+import { gsap, prefersReducedMotion, scrollApi } from "./lib/core";
 import LoadingScreen from "./components/LoadingScreen";
 import Cursor from "./components/Cursor";
 import Navigation from "./components/Navigation";
@@ -16,7 +16,8 @@ import Reserve from "./sections/Reserve";
 export default function App() {
   const [entered, setEntered] = useState(false);
 
-  /* Lenis smooth scroll, synced with GSAP's ticker */
+  /* Lenis smooth scroll — native window scroll, so CSS sticky scenes
+     (hero, day timeline) stay perfectly in sync with it. */
   useEffect(() => {
     if (prefersReducedMotion()) return;
     const lenis = new Lenis({
@@ -26,7 +27,6 @@ export default function App() {
     });
     scrollApi.lenis = lenis;
     lenis.stop();
-    lenis.on("scroll", ScrollTrigger.update);
     const tick = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
@@ -37,27 +37,9 @@ export default function App() {
     };
   }, []);
 
-  /* Every layout-affecting event funnels into ONE debounced refresh,
-     so pinned sections never desync from late-loading imagery. */
-  useEffect(() => {
-    const onLoad = () => scheduleRefresh(true);
-    const onAnyImg = (e: Event) => {
-      const t = e.target as HTMLElement | null;
-      if (t && t.tagName === "IMG") scheduleRefresh();
-    };
-    window.addEventListener("load", onLoad);
-    document.addEventListener("load", onAnyImg, true);
-    document.fonts?.ready.then(() => scheduleRefresh(true)).catch(() => undefined);
-    return () => {
-      window.removeEventListener("load", onLoad);
-      document.removeEventListener("load", onAnyImg, true);
-    };
-  }, []);
-
   const handleEnter = () => {
     setEntered(true);
     scrollApi.lenis?.start();
-    scheduleRefresh(true);
   };
 
   return (

@@ -18,18 +18,29 @@
   --font-sans: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
 }
 
+/* `clip` (not hidden) keeps ScrollTrigger-free layout while preventing
+   horizontal bleed without creating a scroll container */
+html,
+body {
+  margin: 0;
+  overflow-x: clip;
+}
+
 html {
   background-color: var(--color-ink);
 }
 
 body {
-  margin: 0;
   background-color: var(--color-ink);
   color: var(--color-ivory);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+}
+
+main > section {
+  position: relative;
+  isolation: isolate;
 }
 
 ::selection {
@@ -91,6 +102,56 @@ html.custom-cursor label {
 .text-outline-ink {
   color: transparent;
   -webkit-text-stroke: 1px rgba(22, 20, 15, 0.3);
+}
+
+/* ---------- reveal system (IO-driven) ---------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 34px));
+  transition:
+    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mask-line {
+  display: block;
+  transform: translateY(118%);
+  transition: transform 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.mask-line-in {
+  transform: translateY(0);
+}
+
+.img-clip {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-clip-in {
+  clip-path: inset(0 0 0 0);
+}
+
+.img-settle {
+  transform: scale(1.14);
+  transition: transform 1.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-settle-in {
+  transform: scale(1);
+}
+
+/* ---------- rooms scroller ---------- */
+
+.rooms-scroller {
+  scrollbar-width: none;
+}
+.rooms-scroller::-webkit-scrollbar {
+  display: none;
 }
 
 /* ---------- film grain ---------- */
@@ -217,6 +278,18 @@ html.custom-cursor label {
   .pulse-ring,
   .scan-line {
     animation: none;
+  }
+  /* nothing may ever stay hidden */
+  .reveal,
+  .mask-line,
+  .img-settle {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .img-clip {
+    clip-path: none !important;
+    transition: none !important;
   }
   *,
   *::before,

@@ -1,79 +1,53 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { gsap, EASE, prefersReducedMotion } from "../lib/core";
+import { isTouchDevice, prefersReducedMotion, useInView, useReducedMotion } from "../lib/core";
 
-/* Simple fade + rise on entering the viewport */
+/* ---------- fade + rise ---------- */
+
 export function Reveal({
   children,
   className = "",
   delay = 0,
-  y = 36,
+  y = 34,
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
   y?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || prefersReducedMotion()) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        el,
-        { autoAlpha: 0, y },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 1.15,
-          ease: EASE.out,
-          delay,
-          scrollTrigger: { trigger: el, start: "top 88%", once: true },
-        }
-      );
-    });
-    return () => ctx.revert();
-  }, [delay, y]);
+  const [ref, inView] = useInView<HTMLDivElement>();
   return (
-    <div ref={ref} className={className}>
+    <div
+      ref={ref}
+      className={`reveal ${inView ? "reveal-in" : ""} ${className}`}
+      style={{ transitionDelay: `${delay}s`, ["--reveal-y" as never]: `${y}px` }}
+    >
       {children}
     </div>
   );
 }
 
-/* Line-masked editorial headline reveal */
+/* ---------- line-masked headline ---------- */
+
 export function MaskLines({
   lines,
   className = "",
+  lineClassName = "",
   stagger = 0.13,
 }: {
   lines: ReactNode[];
   className?: string;
+  lineClassName?: string;
   stagger?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || prefersReducedMotion()) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        el.querySelectorAll("[data-mask-line]"),
-        { yPercent: 118 },
-        {
-          yPercent: 0,
-          duration: 1.25,
-          ease: EASE.heavy,
-          stagger,
-          scrollTrigger: { trigger: el, start: "top 84%", once: true },
-        }
-      );
-    });
-    return () => ctx.revert();
-  }, [stagger]);
+  const [ref, inView] = useInView<HTMLDivElement>();
   return (
     <div ref={ref} className={className}>
       {lines.map((line, i) => (
-        <span key={i} className="block overflow-hidden">
-          <span data-mask-line="" className="block will-change-transform">
+        <span key={i} className={`block overflow-hidden ${lineClassName}`}>
+          <span
+            className={`mask-line ${inView ? "mask-line-in" : ""}`}
+            style={{ transitionDelay: `${i * stagger}s` }}
+          >
             {line}
           </span>
         </span>
@@ -82,9 +56,8 @@ export function MaskLines({
   );
 }
 
-/* Wipe-in image with optional scroll parallax.
-   Three separate transform targets — figure (clip), img (scale-once),
-   wrapper (scrubbed drift) — so tweens can never overwrite each other. */
+/* ---------- clip-wipe image, optional rAF parallax ---------- */
+
 export function ImageReveal({
   src,
   alt,
@@ -100,64 +73,50 @@ export function ImageReveal({
   parallax?: boolean;
   eager?: boolean;
 }) {
-  const figRef = useRef<HTMLElement>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const [figRef, inView] = useInView<HTMLElement>();
+  const innerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const reduced = useReducedMotion();
+  const useParallax = parallax && !reduced && !isTouchDevice();
+
+  /* lightweight rAF drift — separate element from the wipe/scale, so
+     nothing can ever fight anything */
   useEffect(() => {
+    if (!useParallax || !innerRef.current || !figRef.current) return;
     const fig = figRef.current;
-    const wrap = wrapRef.current;
-    const img = imgRef.current;
-    if (!fig || !wrap || !img || prefersReducedMotion()) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        fig,
-        { clipPath: "inset(100% 0 0 0)" },
-        {
-          clipPath: "inset(0% 0 0 0)",
-          duration: 1.4,
-          ease: EASE.heavy,
-          scrollTrigger: { trigger: fig, start: "top 86%", once: true },
-        }
-      );
-      gsap.fromTo(
-        img,
-        { scale: 1.18 },
-        {
-          scale: 1,
-          duration: 1.8,
-          ease: EASE.out,
-          scrollTrigger: { trigger: fig, start: "top 86%", once: true },
-        }
-      );
-      if (parallax) {
-        gsap.fromTo(
-          wrap,
-          { yPercent: -6 },
-          {
-            yPercent: 6,
-            ease: "none",
-            scrollTrigger: {
-              trigger: fig,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 0.6,
-            },
-          }
-        );
-      }
-    });
-    return () => ctx.revert();
-  }, [parallax]);
+    const inner = innerRef.current;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = fig.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (r.bottom < -100 || r.top > vh + 100) return;
+      const mid = (r.top + r.height / 2 - vh / 2) / vh; // -0.5..0.5 in view
+      inner.style.transform = `translate3d(0, ${(-mid * 7).toFixed(3)}%, 0)`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [useParallax, figRef]);
+
   return (
-    <figure ref={figRef} className={`overflow-hidden ${className}`}>
-      <div ref={wrapRef} className="h-[112%] w-full -translate-y-[6%] will-change-transform">
+    <figure ref={figRef} className={`img-clip ${inView ? "img-clip-in" : ""} overflow-hidden ${className}`}>
+      <div ref={innerRef} className={`h-full w-full ${useParallax ? "h-[112%] -mt-[6%]" : ""}`}>
         <img
           ref={imgRef}
           src={src}
           alt={alt}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
-          className={`h-full w-full object-cover ${imgClassName}`}
+          className={`img-settle ${inView ? "img-settle-in" : ""} h-full w-full object-cover ${imgClassName}`}
         />
       </div>
     </figure>

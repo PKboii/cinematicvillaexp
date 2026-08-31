@@ -1,69 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { DAY_STOPS } from "../data/content";
-import { gsap, ScrollTrigger, scrollToTarget, useReducedMotion } from "../lib/core";
+import { scrollToTarget, useReducedMotion } from "../lib/core";
 
 export default function DayTimeline() {
   const reduced = useReducedMotion();
-  const outerRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const scrimRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
-  const stRef = useRef<ScrollTrigger | null>(null);
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => {
-    if (reduced || !outerRef.current || !innerRef.current) return;
-    const stops = DAY_STOPS;
-
-    const applyBg = (bg: string) => {
-      if (innerRef.current) innerRef.current.style.backgroundColor = bg;
-      if (scrimRef.current) {
-        scrimRef.current.style.background = `linear-gradient(90deg, ${bg}F2 0%, ${bg}B0 36%, ${bg}00 74%)`;
-      }
-    };
-    applyBg(stops[0].bg);
-
-    const st = ScrollTrigger.create({
-      trigger: outerRef.current,
-      start: "top top",
-      end: () => `+=${(stops.length - 1) * 100}%`,
-      pin: innerRef.current,
-      anticipatePin: 1,
-      scrub: 0.6,
-      onUpdate: (self) => {
-        const f = self.progress * (stops.length - 1);
-        const i = Math.min(stops.length - 2, Math.floor(f));
-        const t = f - i;
-        applyBg(gsap.utils.interpolate(stops[i].bg, stops[i + 1].bg, t));
-        if (textRef.current) {
-          textRef.current.style.color = gsap.utils.interpolate(
-            stops[i].fg,
-            stops[i + 1].fg,
-            t
-          );
-        }
-        imgRefs.current.forEach((el, k) => {
-          if (!el) return;
-          el.style.opacity = k === i ? String(1 - t) : k === i + 1 ? String(t) : "0";
-        });
-        const r = Math.min(stops.length - 1, Math.round(f));
-        setIdx((prev) => (prev === r ? prev : r));
-      },
-    });
-    stRef.current = st;
-    return () => {
-      st.kill();
-      stRef.current = null;
-    };
-  }, [reduced]);
-
-  const jump = (i: number) => {
-    const st = stRef.current;
-    if (!st) return;
-    const y = st.start + (i / (DAY_STOPS.length - 1)) * (st.end - st.start);
-    scrollToTarget(y);
-  };
 
   if (reduced) {
     return (
@@ -100,75 +39,69 @@ export default function DayTimeline() {
     );
   }
 
+  /* sticky-stacked day: each hour is a full panel that slides over the last.
+     Pure CSS stacking — cannot desync, cannot overlap other sections. */
   return (
-    <section id="day" aria-labelledby="day-title">
+    <section id="day" aria-labelledby="day-title" className="relative">
       <h2 id="day-title" className="sr-only">
         A day at Aurelia — from first light to the stars
       </h2>
-      <div ref={outerRef} className="relative">
+      {DAY_STOPS.map((s, i) => (
         <div
-          ref={innerRef}
-          className="relative h-svh overflow-hidden"
-          style={{ backgroundColor: DAY_STOPS[0].bg }}
+          key={s.time}
+          id={`day-stop-${i}`}
+          className="sticky top-0 h-svh overflow-hidden shadow-[0_-20px_60px_rgba(10,8,5,0.35)]"
+          style={{ zIndex: i + 1 }}
         >
-          {DAY_STOPS.map((s, i) => (
+          <div className="absolute inset-0" style={{ backgroundColor: s.bg, color: s.fg }}>
             <img
-              key={s.time}
-              ref={(el) => {
-                imgRefs.current[i] = el;
-              }}
               src={s.image}
               alt={s.alt}
-              aria-hidden={i !== idx}
               loading={i < 2 ? "eager" : "lazy"}
               decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
-              style={{ opacity: i === 0 ? 1 : 0 }}
             />
-          ))}
-          <div ref={scrimRef} className="pointer-events-none absolute inset-0" />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(90deg, ${s.bg}F2 0%, ${s.bg}B8 34%, ${s.bg}00 72%)`,
+              }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: `linear-gradient(0deg, ${s.bg}CC 0%, ${s.bg}00 32%)` }}
+            />
 
-          <div
-            ref={textRef}
-            className="pointer-events-none absolute inset-0"
-            style={{ color: DAY_STOPS[0].fg }}
-          >
-            <div className="absolute top-[17vh] left-6 md:top-[19vh] md:left-14">
+            <div className="absolute top-[16vh] left-6 md:top-[18vh] md:left-14">
               <p className="label opacity-75">06 — A DAY AT AURELIA</p>
-              <div key={idx} className="animate-fade-up">
-                <p className="mt-6 font-display text-[17vw] leading-[0.9] font-medium tabular-nums md:text-[8vw]">
-                  {DAY_STOPS[idx].time}
-                </p>
-                <h3 className="mt-3 font-display text-2xl font-light italic md:text-4xl">
-                  {DAY_STOPS[idx].title}
-                </h3>
-                <p className="mt-3 max-w-xs text-sm opacity-85 md:text-base">
-                  {DAY_STOPS[idx].copy}
-                </p>
-              </div>
+              <p className="mt-6 font-display text-[17vw] leading-[0.9] font-medium tabular-nums md:text-[8vw]">
+                {s.time}
+              </p>
+              <h3 className="mt-3 font-display text-2xl font-light italic md:text-4xl">{s.title}</h3>
+              <p className="mt-3 max-w-xs text-sm opacity-85 md:text-base">{s.copy}</p>
             </div>
 
-            <div className="pointer-events-auto absolute right-6 bottom-7 left-6 md:right-14 md:left-14">
+            <div className="absolute right-6 bottom-7 left-6 md:right-14 md:left-14">
               <div
                 className="flex items-end justify-between gap-4 overflow-x-auto"
                 role="tablist"
                 aria-label="Times of day"
               >
-                {DAY_STOPS.map((s, i) => (
+                {DAY_STOPS.map((t, k) => (
                   <button
-                    key={s.time}
+                    key={t.time}
                     type="button"
                     role="tab"
-                    aria-selected={i === idx}
-                    onClick={() => jump(i)}
+                    aria-selected={k === i}
+                    onClick={() => scrollToTarget(`#day-stop-${k}`)}
                     className={`label-lg shrink-0 pb-3 transition-opacity duration-300 ${
-                      i === idx ? "opacity-100" : "opacity-40 hover:opacity-75"
+                      k === i ? "opacity-100" : "opacity-40 hover:opacity-75"
                     }`}
                   >
-                    {s.time}
+                    {t.time}
                     <span
                       className={`mt-2 block h-px w-full ${
-                        i === idx ? "bg-current" : "bg-current opacity-25"
+                        k === i ? "bg-current" : "bg-current opacity-25"
                       }`}
                     />
                   </button>
@@ -177,7 +110,7 @@ export default function DayTimeline() {
             </div>
           </div>
         </div>
-      </div>
+      ))}
     </section>
   );
 }

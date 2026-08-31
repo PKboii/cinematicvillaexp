@@ -1,36 +1,20 @@
-import { useEffect, useRef } from "react";
 import { MaskLines, Reveal } from "../components/Reveal";
 import { COORDS, DISTANCES } from "../data/content";
-import { gsap, useReducedMotion } from "../lib/core";
+import { useInView } from "../lib/core";
 
 export default function Location() {
-  const reduced = useReducedMotion();
-  const svgRef = useRef<SVGSVGElement>(null);
+  const [svgRef, drawn] = useInView<SVGSVGElement>("0px 0px 220px 0px");
 
-  useEffect(() => {
-    if (reduced || !svgRef.current) return;
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "power2.out" },
-        scrollTrigger: { trigger: svgRef.current, start: "top 75%", once: true },
-      });
-      tl.fromTo(
-        "[data-draw]",
-        { strokeDashoffset: 1 },
-        { strokeDashoffset: 0, duration: 1.7, stagger: 0.4 }
-      ).fromTo(
-        "[data-pt]",
-        { autoAlpha: 0, y: 12 },
-        { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.2 },
-        "-=1.1"
-      );
-    });
-    return () => ctx.revert();
-  }, [reduced]);
-
-  const dash = reduced
-    ? undefined
-    : { pathLength: 1, strokeDasharray: 1, strokeDashoffset: 1 };
+  const line = (delay: number): React.CSSProperties => ({
+    strokeDasharray: 1,
+    strokeDashoffset: drawn ? 0 : 1,
+    transition: `stroke-dashoffset 1.8s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+  });
+  const point = (delay: number): React.CSSProperties => ({
+    opacity: drawn ? 1 : 0,
+    transform: drawn ? "translateY(0)" : "translateY(12px)",
+    transition: `opacity 0.8s ease ${delay}s, transform 0.8s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+  });
 
   return (
     <section
@@ -97,10 +81,10 @@ export default function Location() {
                 "M 75 440 q 30 -14 60 0 q 30 14 60 0",
                 "M 45 540 q 30 -14 60 0 q 30 14 60 0",
               ].map((d, i) => (
-                <path key={i} d={d} data-draw={dash ? "" : undefined} pathLength={dash ? 1 : undefined} strokeDasharray={dash ? 1 : undefined} strokeDashoffset={dash ? 1 : undefined} style={dash ? { transition: "none" } : undefined} />
+                <path key={i} d={d} pathLength={1} style={line(0.9 + i * 0.12)} />
               ))}
             </g>
-            <g data-pt="">
+            <g style={point(1.7)}>
               <text
                 x={88}
                 y={392}
@@ -121,10 +105,8 @@ export default function Location() {
               fill="none"
               stroke="rgba(22,20,15,0.75)"
               strokeWidth={1.6}
-              data-draw=""
-              pathLength={dash ? 1 : undefined}
-              strokeDasharray={dash ? 1 : undefined}
-              strokeDashoffset={dash ? 1 : undefined}
+              pathLength={1}
+              style={line(0)}
             />
             {/* beach */}
             <path
@@ -134,10 +116,8 @@ export default function Location() {
               strokeWidth={7}
               strokeLinecap="round"
               opacity={0.85}
-              data-draw=""
-              pathLength={dash ? 1 : undefined}
-              strokeDasharray={dash ? 1 : undefined}
-              strokeDashoffset={dash ? 1 : undefined}
+              pathLength={1}
+              style={line(0.5)}
             />
 
             {/* land contours */}
@@ -154,28 +134,26 @@ export default function Location() {
               fill="none"
               stroke="#8f6f47"
               strokeWidth={1.6}
-              data-draw=""
-              pathLength={dash ? 1 : undefined}
-              strokeDasharray={dash ? 1 : undefined}
-              strokeDashoffset={dash ? 1 : undefined}
+              pathLength={1}
+              style={line(1.1)}
             />
 
             {/* airport */}
-            <g data-pt="">
+            <g style={point(1.5)}>
               <rect x={464} y={594} width={12} height={12} fill="none" stroke="rgba(22,20,15,0.8)" strokeWidth={1.4} />
               <text x={486} y={605} fill="rgba(22,20,15,0.75)" fontSize={11} letterSpacing={2.4} fontFamily="Space Grotesk, sans-serif">
                 DABOLIM AIRPORT
               </text>
             </g>
             {/* old goa */}
-            <g data-pt="">
+            <g style={point(1.75)}>
               <circle cx={336} cy={426} r={4.5} fill="none" stroke="rgba(22,20,15,0.8)" strokeWidth={1.4} />
               <text x={352} y={431} fill="rgba(22,20,15,0.75)" fontSize={11} letterSpacing={2.4} fontFamily="Space Grotesk, sans-serif">
                 OLD GOA
               </text>
             </g>
             {/* beach label */}
-            <g data-pt="">
+            <g style={point(2)}>
               <text
                 x={206}
                 y={300}
@@ -189,7 +167,7 @@ export default function Location() {
               </text>
             </g>
             {/* villa */}
-            <g data-pt="">
+            <g style={point(2.2)}>
               <circle
                 cx={252}
                 cy={302}
@@ -216,7 +194,7 @@ export default function Location() {
             </g>
 
             {/* compass */}
-            <g data-pt="" transform="translate(540, 84)" aria-hidden="true">
+            <g style={point(1.3)} transform="translate(540, 84)" aria-hidden="true">
               <circle r={20} fill="none" stroke="rgba(22,20,15,0.35)" />
               <line x1={0} y1={11} x2={0} y2={-11} stroke="#8f6f47" strokeWidth={1.2} />
               <path d="M0 -11 L-4.5 -3 L4.5 -3 Z" fill="#8f6f47" />
