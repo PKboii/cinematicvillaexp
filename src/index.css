@@ -1,0 +1,301 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ivory: #f2ecdf;
+  --color-parchment: #e9e1ce;
+  --color-sand: #d8c9a8;
+  --color-sanddeep: #c2af87;
+  --color-ink: #16140f;
+  --color-coal: #201d17;
+  --color-umber: #2b2620;
+  --color-pine: #16211a;
+  --color-moss: #37463a;
+  --color-bronze: #b08d5f;
+  --color-bronzedeep: #8f6f47;
+  --color-teal: #4e6e66;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* `clip` (not hidden) keeps ScrollTrigger-free layout while preventing
+   horizontal bleed without creating a scroll container */
+html,
+body {
+  margin: 0;
+  overflow-x: clip;
+}
+
+html {
+  background-color: var(--color-ink);
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-ivory);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main > section {
+  position: relative;
+  isolation: isolate;
+}
+
+::selection {
+  background: var(--color-bronze);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-bronze);
+  outline-offset: 4px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: #3a352c;
+  border: 3px solid var(--color-ink);
+  border-radius: 8px;
+}
+
+html.custom-cursor,
+html.custom-cursor a,
+html.custom-cursor button,
+html.custom-cursor [role="button"],
+html.custom-cursor input,
+html.custom-cursor select,
+html.custom-cursor label {
+  cursor: none;
+}
+
+/* ---------- type utilities ---------- */
+
+.label {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.label-lg {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.26em;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(242, 236, 223, 0.34);
+}
+
+.text-outline-ink {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(22, 20, 15, 0.3);
+}
+
+/* ---------- reveal system (IO-driven) ---------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 34px));
+  transition:
+    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mask-line {
+  display: block;
+  transform: translateY(118%);
+  transition: transform 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.mask-line-in {
+  transform: translateY(0);
+}
+
+.img-clip {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-clip-in {
+  clip-path: inset(0 0 0 0);
+}
+
+.img-settle {
+  transform: scale(1.14);
+  transition: transform 1.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-settle-in {
+  transform: scale(1);
+}
+
+/* ---------- rooms scroller ---------- */
+
+.rooms-scroller {
+  scrollbar-width: none;
+}
+.rooms-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- film grain ---------- */
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: 96;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 1.4s steps(4) infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-1.5%, 1%, 0); }
+  50% { transform: translate3d(1%, -1.5%, 0); }
+  75% { transform: translate3d(-1%, -1%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ---------- micro animations ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes cue-dot {
+  0% { transform: translateY(-100%); }
+  55% { transform: translateY(100%); }
+  100% { transform: translateY(100%); }
+}
+
+.cue-dot {
+  animation: cue-dot 2.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(220%); }
+}
+
+.scan-line {
+  animation: scan-line 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* link underline */
+.link-line {
+  position: relative;
+}
+.link-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-line:hover::after,
+.link-line:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* form fields */
+.field {
+  color-scheme: dark;
+}
+.field input,
+.field select {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(242, 236, 223, 0.25);
+  border-radius: 0;
+  padding: 0.65rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  color: var(--color-ivory);
+  transition: border-color 0.4s ease;
+}
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-bronze);
+}
+.field select option {
+  background: var(--color-ink);
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .cue-dot,
+  .pulse-ring,
+  .scan-line {
+    animation: none;
+  }
+  /* nothing may ever stay hidden */
+  .reveal,
+  .mask-line,
+  .img-settle {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .img-clip {
+    clip-path: none !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
